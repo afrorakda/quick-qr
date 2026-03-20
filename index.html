@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Quick QR</title>
+    
+    <link rel="icon" href="image_12.png">
+    <link rel="apple-touch-icon" href="image_12.png">
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #fff; display: flex; justify-content: center; padding: 20px; margin: 0; color: #111; -webkit-font-smoothing: antialiased; }
+        .container { width: 100%; max-width: 380px; min-height: 98vh; display: flex; flex-direction: column; }
+        h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.8px; margin: 25px 0 5px; }
+        .subtitle { font-size: 0.85rem; color: #666; margin-bottom: 35px; }
+        
+        /* 入力エリア */
+        .input-group { position: relative; margin-bottom: 12px; }
+        .input-box { width: 100%; padding: 18px; border: 1px solid #ddd; border-radius: 15px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.2s; -webkit-appearance: none; }
+        .input-box:focus { border-color: #111; }
+        
+        /* ボタンエリア */
+        .btn-group { display: flex; gap: 10px; margin-bottom: 30px; }
+        .btn-main { flex: 3; padding: 18px; background-color: #111; color: white; border: none; border-radius: 15px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; -webkit-appearance: none; }
+        .btn-clear { flex: 1; padding: 18px; background-color: #f0f0f0; color: #666; border: none; border-radius: 15px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; -webkit-appearance: none; }
+        .btn-main:active, .btn-clear:active { transform: scale(0.96); opacity: 0.8; }
+        
+        /* 結果表示エリア（QRコード） */
+        #result-area { display: none; animation: fadeIn 0.4s ease; text-align: center; flex-grow: 1; }
+        .card { background: #f9f9f9; padding: 30px; border-radius: 15px; border: 1px solid #eee; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .result-label { font-size: 0.7rem; font-weight: 800; color: #aaa; text-transform: uppercase; margin-bottom: 15px; display: block; }
+        #qrcode-out { padding: 10px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+        footer { margin-top: auto; padding: 30px 0; text-align: center; font-size: 0.7rem; color: #aaa; line-height: 1.8; border-top: 1px solid #eee; }
+        .install-btn { background: #f0f0f0; color: #111; border: none; padding: 12px 24px; border-radius: 25px; font-weight: 700; cursor: pointer; margin: 0 auto 25px; font-size: 0.8rem; display: inline-block; transition: 0.2s; }
+        
+        #install-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; padding:20px; box-sizing:border-box; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 100%; max-width: 300px; position: relative; animation: modalIn 0.3s ease; text-align: center; }
+        .btn-close-modal { position: absolute; top: 15px; right: 15px; background:none; border:none; font-size:20px; color: #999; cursor: pointer; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Quick QR</h1>
+    <p class="subtitle">Enter text or URL. Get QR code instantly.</p>
+    
+    <div class="input-group">
+        <input type="text" id="url-in" class="input-box" placeholder="https://example.com" onkeypress="if(event.key==='Enter') generate()">
+    </div>
+    
+    <div class="btn-group">
+        <button class="btn-main" onclick="generate()">Generate QR</button>
+        <button class="btn-clear" onclick="clearAll()">Clear</button>
+    </div>
+    
+    <div id="result-area">
+        <div class="card">
+            <span class="result-label">Scan this QR</span>
+            <div id="qrcode-out"></div>
+        </div>
+    </div>
+    
+    <footer>
+        <button class="install-btn" onclick="showInstall()">📱 Add to Home Screen</button>
+        <div class="footer-line">No login / No tracking / Browser only</div>
+        <div class="footer-line">No server / No Ads</div>
+        <div class="footer-line">Privacy Policy</div>
+        <div style="margin-top: 15px;">Quick QR © 2026</div>
+    </footer>
+</div>
+
+<div id="install-modal" onclick="hideInstall()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="btn-close-modal" onclick="hideInstall()">✕</button>
+        <h2 style="font-size: 1.2rem; margin-top:0;">📱 Install</h2>
+        <p style="font-size: 0.85rem; color: #555;">Add to your home screen.</p>
+        <div style="text-align: left; font-size: 0.8rem; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-top:15px;">
+            <strong>🍏 iOS:</strong> Share > Add to Home Screen<br>
+            <strong>🤖 Android:</strong> Menu > Add to Home screen
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+    let qrcode;
+
+    function generate() {
+        const input = document.getElementById('url-in').value.trim();
+        if (!input) return;
+
+        const outArea = document.getElementById('result-area');
+        const outDiv = document.getElementById('qrcode-out');
+        
+        outDiv.innerHTML = ''; // 以前のQRを消す
+        outArea.style.display = 'block';
+
+        // QRコード生成
+        if (qrcode) qrcode.clear();
+        qrcode = new QRCode(outDiv, {
+            text: input,
+            width: 200,
+            height: 200,
+            colorDark: "#111",
+            colorLight: "#FFFFFF",
+            correctLevel: QRCode.CorrectLevel.H // エラー訂正レベルを高く設定（読み取りやすさ優先）
+        });
+    }
+
+    function clearAll() {
+        document.getElementById('url-in').value = '';
+        document.getElementById('result-area').style.display = 'none';
+        document.getElementById('url-in').focus();
+    }
+
+    function showInstall() { document.getElementById('install-modal').style.display = 'flex'; }
+    function hideInstall() { document.getElementById('install-modal').style.display = 'none'; }
+</script>
+</body>
+</html>
