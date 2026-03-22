@@ -1,7 +1,15 @@
 # Quick QR
-Generate QR codes instantly. No complicated settings, just type and get your code.
+Clean QR codes without the tracking or ads. Open, type, done.
 
-### 🛠 Fridge Combo Standard
-* **One-Tap Generate**: Create QR codes for URLs or text on the fly.
-* **Minimalist UI**: White background, black buttons, 15px rounded corners.
-* **Privacy First**: No login, No tracking, No ads.
+## Philosophy
+* **1 Tool, 1 Action.**
+* **No Login / No Ads / No Tracking**
+* **Browser-only Privacy**
+
+## How to Use
+1. Enter your URL or text.
+2. Download or scan your QR code instantly.
+
+---
+No login / No tracking / No ads / Browser only Privacy Policy  
+**afrorakda © 2026**
