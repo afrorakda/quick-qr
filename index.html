@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>Quick QR</title>
@@ -11,53 +11,102 @@
     <link rel="apple-touch-icon" href="image_6.png">
 
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #fff; display: flex; justify-content: center; padding: 20px; margin: 0; color: #111; -webkit-font-smoothing: antialiased; }
-        .container { width: 100%; max-width: 380px; min-height: 95vh; display: flex; flex-direction: column; }
+        :root { --main: #333; --bg: #fff; --accent: #eee; --input-bg: #fafafa; --radius: 15px; }
         
-        h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.8px; margin: 25px 0 5px; }
-        .subtitle { font-size: 0.85rem; color: #666; margin-bottom: 35px; }
+        /* 憲法：長押し選択禁止と基本スタイル */
+        * { 
+            -webkit-touch-callout: none !important; 
+            -webkit-user-select: none !important; 
+            user-select: none !important; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: var(--bg); display: flex; justify-content: center; 
+            padding: 20px; margin: 0; color: var(--main); -webkit-font-smoothing: antialiased; 
+        }
+
+        .container { width: 100%; max-width: 380px; min-height: 98vh; display: flex; flex-direction: column; position: relative; }
         
-        .input-group { position: relative; margin-bottom: 12px; }
-        .input-box { width: 100%; padding: 18px; border: 1px solid #ddd; border-radius: 15px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.2s; -webkit-appearance: none; }
-        .input-box:focus { border-color: #111; }
+        /* 構造：左上独立Hubボタン */
+        .hub-link { 
+            text-decoration: none; font-size: 0.8rem; font-weight: 800; color: var(--main); 
+            background: var(--accent); padding: 8px 15px; border-radius: var(--radius); 
+            align-self: flex-start; margin-bottom: 20px; transition: 0.2s; cursor: pointer; 
+        }
+        .hub-link:active { transform: scale(0.95); }
+
+        header { margin-bottom: 25px; }
+        h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.8px; margin: 0 0 5px; }
+        .subtitle { font-size: 0.85rem; color: #666; font-weight: 500; }
+
+        .input-wrapper { position: relative; width: 100%; margin-bottom: 15px; }
         
-        .btn-group { display: flex; gap: 10px; margin-bottom: 30px; }
-        .btn-main { flex: 3; padding: 18px; background-color: #111; color: white; border: none; border-radius: 15px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; -webkit-appearance: none; }
-        .btn-clear { flex: 1; padding: 18px; background-color: #f0f0f0; color: #666; border: none; border-radius: 15px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; -webkit-appearance: none; }
-        .btn-main:active, .btn-clear:active { transform: scale(0.96); opacity: 0.8; }
-        
+        /* デザイン憲法：iOS Safari対策込の入力エリア */
+        .input-box { 
+            width: 100%; padding: 18px 50px 18px 18px; border: 2px solid var(--accent); 
+            border-radius: var(--radius); box-sizing: border-box; font-size: 16px; font-weight: 600; 
+            outline: none; transition: 0.2s; background: var(--input-bg);
+            -webkit-appearance: none; -webkit-text-fill-color: var(--main); opacity: 1 !important;
+            user-select: auto !important; -webkit-user-select: auto !important;
+        }
+        .input-box:focus { border-color: var(--main); }
+        .input-box::placeholder { color: #888; -webkit-text-fill-color: #888; }
+
+        /* クリアボタン：右下に配置 */
+        .btn-clear-x { 
+            position: absolute; right: 12px; bottom: 10px; 
+            background: rgba(100,100,100,0.9); border: none; font-size: 20px; font-weight: bold; 
+            color: white; cursor: pointer; display: none; width: 32px; height: 32px; 
+            border-radius: 50%; line-height: 32px; text-align: center; padding: 0; z-index: 10;
+        }
+
+        .btn-main { 
+            width: 100%; padding: 18px; background-color: var(--main); color: white; 
+            border: none; border-radius: var(--radius); font-size: 16px; font-weight: 800; 
+            cursor: pointer; margin-bottom: 30px; transition: 0.2s; 
+        }
+        .btn-main:active { opacity: 0.9; transform: scale(0.98); }
+
         #result-area { display: none; animation: fadeIn 0.4s ease; text-align: center; margin-bottom: 30px; }
-        .card { background: #f9f9f9; padding: 30px; border-radius: 15px; border: 1px solid #eee; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .card { background: #fafafa; padding: 30px; border-radius: var(--radius); border: 1px solid var(--accent); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .result-label { font-size: 0.7rem; font-weight: 800; color: #aaa; text-transform: uppercase; margin-bottom: 15px; display: block; }
         #qrcode-out { padding: 10px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); line-height: 0; }
+        #qrcode-out img { max-width: 100%; height: auto; }
 
-        /* Fridge Combo Standard Footer */
-        footer { margin-top: auto; padding: 40px 0 20px; text-align: center; font-size: 13px; color: #666; border-top: 1px solid #f0f0f0; }
-        .kofi-btn { display: inline-block; background: #111; color: #fff; padding: 12px 24px; border-radius: 15px; text-decoration: none; font-weight: bold; margin-bottom: 20px; transition: 0.2s; }
-        .install-btn { background: #f0f0f0; color: #111; border: none; padding: 8px 20px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500; margin-bottom: 20px; }
-        .footer-line { line-height: 1.8; color: #999; }
+        /* 鉄壁フッター */
+        footer { margin-top: auto; padding: 30px 0 20px; text-align: center; border-top: 1px solid #f5f5f5; font-size: 12px; color: #666; font-weight: 600; }
+        .footer-btns { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .kofi-btn { background: var(--main); color: #fff; padding: 12px; border-radius: var(--radius); text-decoration: none; font-weight: bold; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+        .install-trigger { background: var(--accent); color: var(--main); border: none; padding: 12px; border-radius: var(--radius); font-weight: 800; font-size: 13px; cursor: pointer; width: 100%; }
+        .footer-info { line-height: 1.6; }
+        .footer-info a { color: inherit; text-decoration: underline; }
 
-        /* Unified Install Modal */
-        #install-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
-        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 85%; max-width: 300px; position: relative; text-align: center; }
-        .btn-close-modal { position: absolute; top: 15px; right: 15px; background:none; border:none; font-size:20px; color: #999; cursor: pointer; }
+        /* モーダル */
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: #fff; width: 85%; max-width: 340px; padding: 30px; border-radius: var(--radius); position: relative; text-align: left; }
+        .close-x { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #888; cursor: pointer; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
+
 <div class="container">
-    <h1>Quick QR</h1>
-    <p class="subtitle">Enter text or URL. Get QR code instantly.</p>
+    <a href="https://afrorakda.github.io/" class="hub-link">🏠 Hub</a>
+
+    <header>
+        <h1>Quick QR</h1>
+        <p class="subtitle">Enter text or URL. Get QR code instantly.</p>
+    </header>
     
-    <div class="input-group">
-        <input type="text" id="url-in" class="input-box" placeholder="https://example.com" onkeypress="if(event.key==='Enter') generate()">
+    <div class="input-wrapper">
+        <input type="text" id="url-in" class="input-box" placeholder="https://example.com" onkeypress="if(event.key==='Enter') generate()" oninput="toggleCl()">
+        <button id="cl" class="btn-clear-x" onclick="clearAll()">✕</button>
     </div>
     
-    <div class="btn-group">
-        <button class="btn-main" onclick="generate()">Generate QR</button>
-        <button class="btn-clear" onclick="clearAll()">Clear</button>
-    </div>
+    <button class="btn-main" onclick="generate()">Generate QR</button>
     
     <div id="result-area">
         <div class="card">
@@ -66,48 +115,37 @@
         </div>
     </div>
     
-    <footer>
-        <a href="https://ko-fi.com/afrorakda" target="_blank" rel="noopener" class="kofi-btn">☕ Support me on Ko-fi</a>
-        <div>
-            <button class="install-btn" onclick="showInstall()">Add to Home Screen</button>
+    <footer id="dynamic-footer">
+        <div class="footer-btns">
+            <a href="https://ko-fi.com/afrorakda" target="_blank" class="kofi-btn" id="kofi-link">☕️buy me a coffee</a>
+            <button class="install-trigger" onclick="showModal()" id="install-text">Add to Home Screen</button>
         </div>
-        <div class="footer-line">
-            <div>No login / No tracking / No ads / Browser only</div>
-            <div>Privacy Policy</div>
-            <div style="margin-top: 10px; font-weight: bold; color: #111;">Quick QR © 2026</div>
+        <div class="footer-info">
+            No login / No tracking / No ads / Browser only<br>
+            <a href="https://afrorakda.com/privacy/" id="privacy-link">Privacy Policy</a><br>
+            <span id="copyright">Quick QR © 2026</span>
         </div>
     </footer>
 </div>
 
-<div id="install-modal" onclick="hideInstall()">
+<div id="modal" onclick="hideModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <button class="btn-close-modal" onclick="hideInstall()">✕</button>
-        <h2 style="font-size: 1.2rem; margin-top:0; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            📱 Install
-        </h2>
-        <p style="font-size: 0.85rem; color: #555; margin-bottom: 15px;">Add to your home screen.</p>
-        <div style="text-align: left; font-size: 0.8rem; background: #f9f9f9; padding: 18px; border-radius: 12px;">
-            <div style="margin-bottom: 12px; display: flex; align-items: start; gap: 8px;">
-                <span>🍏</span>
-                <div>
-                    <strong>iPhone (Safari):</strong><br>
-                    Tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.
-                </div>
-            </div>
-            <div style="display: flex; align-items: start; gap: 8px;">
-                <span>🤖</span>
-                <div>
-                    <strong>Android (Chrome):</strong><br>
-                    Tap <strong>Menu (⋮)</strong>, then <strong>Add to Home screen</strong>.
-                </div>
-            </div>
-        </div>
+        <span class="close-x" onclick="hideModal()">×</span>
+        <h3 id="modal-title" style="margin-top:0;">Install App</h3>
+        <p id="modal-msg" style="font-size:14px; font-weight:600;">Add to your home screen for easy access.</p>
+        <p id="modal-ios" style="font-size:13px; color:#666;">iOS: Tap Share then 'Add to Home Screen'.</p>
+        <p id="modal-android" style="font-size:13px; color:#666;">Android: Tap Menu then 'Add to Home screen'.</p>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
     let qrcode;
+
+    function toggleCl() {
+        const input = document.getElementById('url-in');
+        document.getElementById('cl').style.display = input.value ? 'block' : 'none';
+    }
 
     function generate() {
         const input = document.getElementById('url-in').value.trim();
@@ -124,7 +162,7 @@
             text: input,
             width: 200,
             height: 200,
-            colorDark: "#111",
+            colorDark: "#333",
             colorLight: "#FFFFFF",
             correctLevel: QRCode.CorrectLevel.H
         });
@@ -133,11 +171,30 @@
     function clearAll() {
         document.getElementById('url-in').value = '';
         document.getElementById('result-area').style.display = 'none';
+        toggleCl();
         document.getElementById('url-in').focus();
     }
 
-    function showInstall() { document.getElementById('install-modal').style.display = 'flex'; }
-    function hideInstall() { document.getElementById('install-modal').style.display = 'none'; }
+    function showModal() { document.getElementById('modal').style.display = 'flex'; }
+    function hideModal() { document.getElementById('modal').style.display = 'none'; }
+
+    async function loadFooter() {
+        try {
+            const response = await fetch('footer.json');
+            if (!response.ok) return;
+            const data = await response.json();
+            if(data.kofi) { document.getElementById('kofi-link').href = data.kofi.url; document.getElementById('kofi-link').textContent = data.kofi.text; }
+            if(data.install) {
+                document.getElementById('install-text').textContent = data.install.text;
+                document.getElementById('modal-title').textContent = data.install.title;
+                document.getElementById('modal-msg').textContent = data.install.msg;
+                document.getElementById('modal-ios').textContent = data.install.ios;
+                document.getElementById('modal-android').textContent = data.install.android;
+            }
+            if(data.privacy) document.getElementById('privacy-link').href = data.privacy.url;
+        } catch (e) { console.error("Footer update skipped."); }
+    }
+    window.addEventListener('DOMContentLoaded', loadFooter);
 </script>
 </body>
 </html>
